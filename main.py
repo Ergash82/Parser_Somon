@@ -145,6 +145,75 @@ def main():
 
         get_pages_link()
 
+# Парсим необходимые данные со страниц
+        data = []
+        header = []
+
+        # Получение доп. данных со страницы
+        def get_chart(soup):
+            headers = {
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                              'Chrome/107.0.0.0 Safari/537.36',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+            chart_dict = {}
+            chart_col = soup.find('ul', class_="chars-column").findAll('li')
+            title = soup.find(id="ad-title").text.strip().replace('\n', '')
+            location = soup.find(class_="announcement-meta__left").find('span', attrs={"itemprop": "address"}).text
+            details = soup.find(class_="announcement__details").find('span', class_="date-meta").text.strip()
+            price = soup.find(class_="announcement-price__cost").find('meta', itemprop="price").get('content').replace(
+                '.',
+                ',')
+            description = soup.find(class_="announcement-description").text.strip()
+
+            chart_dict['Имя'] = title
+            chart_dict['Цена'] = price
+            try:
+                phone_check = soup.find(class_="phone-author")['data-url']
+                response = req.get(url="https://somon.tj/" + phone_check, headers=headers)
+                phone_number = response.json()['tel']
+                chart_dict['Телф'] = phone_number
+            except:
+                print('нет номера телефона')
+
+            def get_chart(chart_col):
+                try:
+                    for chart in chart_col:
+                        key_char = chart.find(class_="key-chars").text
+                        key_char_val = chart.find(class_="value-chars").text
+                        chart_dict[key_char] = key_char_val.strip()
+                except:
+                    print('Нет дополнительной информации')
+
+            get_chart(chart_col)
+
+            chart_dict['Регион'] = location
+            chart_dict['Статус'] = details
+            chart_dict['Описание'] = description
+
+            if chart_dict.keys() - header:
+                for key in chart_dict.keys() - header:
+                    header.append(key)
+            return chart_dict
+
+        # Запрос и Получение необходимых данных со всех выбранных страниц
+
+        def get_pages_data(links):
+            end_page = int(input('\nСколько записей хотите получить? ')) + 1
+            start_page = int(input('С какой записи начнем? \n')) - 1
+
+            for link, _ in zip(links[start_page:end_page], tqdm(links[start_page:end_page])):
+                page = req.get(link, headers)
+                soup2 = bs(page.text, 'lxml')
+                try:
+                    chart_col = soup2.find('ul', class_="chars-column").findAll('li')
+                except:
+                    continue
+                data.append(get_chart(soup2))
+                time.sleep(.1)  # for progress bar
+
+        get_pages_data(links)
 
 
 if __name__ == '__main__':
