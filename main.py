@@ -98,6 +98,53 @@ def main():
         else:
             print('Под_рубрики не найдены!')
 
+       # Парсим выбранную рубрику и получаем количество страниц
+
+        pages = soup.find_all(class_='page-number')
+        if len(pages) > 0:
+            page_n = int(pages[-1].text)
+        else:
+            page_n = 1
+
+        # Запрашиваем с какого  и какое количество страниц хотим получить (записываем сылки в список)
+        links = []
+
+        def get_pages_link():
+            print('Имеется: {} страниц'.format(page_n))
+            end_page = int(input('Сколько страниц хотите получить? \n')) + 1
+            start_page = int(input('С какой страницы начнем? \n')) - 1
+            if page_n > 1:
+                for page, _ in zip(range(start_page - 1, end_page + 1), tqdm(range(start_page, end_page))):
+                    response = req.get(url=f'{rubrics[sel_rubric][1]}?page={page}', headers=headers)
+                    soup = bs(response.text, 'lxml')
+                    refer = soup.find_all(class_="card__title-link")
+                    if len(refer) == 0:
+                        refer = soup.find_all('a', class_="mask")
+
+                    time.sleep(1)  # for progress bar
+                    for link in refer:
+                        links.append(f"https://somon.tj/{link['href']}")
+                print('\nИмеется: {} записей'.format(len(links)))
+            else:
+                response = req.get(url=rubrics[sel_rubric][1], headers=headers)
+                soup = bs(response.text, 'lxml')
+                refer = soup.find_all(class_="card__title-link")
+                if len(refer) == 0:
+                    refer = soup.find_all('a', class_="mask")
+
+                time.sleep(1)  # for progress bar
+                for link in refer:
+                    links.append(f"https://somon.tj/{link['href']}")
+                print('\nИмеется: {} записей'.format(len(links)))
+
+            if len(links) > 0:
+                return 1
+            else:
+                print('Записи отсуствуют!')
+                return 0
+
+        get_pages_link()
+
 
 
 if __name__ == '__main__':
