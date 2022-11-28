@@ -31,4 +31,10 @@ def main():
     # url = r'https://somon.tj/biznes-i-uslugi/'
     url = input('Введите аддрес сайта (пример: https://somon.tj/telefonyi-i-svyaz/\n\n')
 
+    # Создаем обьект супа
+    html = req.get(url=url, headers=headers)
+    sel_rubric = 0
+    if html.status_code == 200:
+        soup = bs(html.text, 'lxml')
+        rubrics = []
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
