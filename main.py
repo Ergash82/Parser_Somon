@@ -37,4 +37,20 @@ def main():
     if html.status_code == 200:
         soup = bs(html.text, 'lxml')
         rubrics = []
+
+        # Парсим первую страниу и получаем список рубрик
+
+        # 1 Получаем имя Города
+        def get_city():
+            ''' Запрос и Получение Города'''
+            rubrics_city = []
+            rubrics_cities_list = soup('ul', class_="rubric-cities-list")
+            for rubric_city in rubrics_cities_list:
+                for j, link in enumerate(rubric_city.findAll('li', class_="rubric-cities-list-item")):
+                    refr_city = link.find('a')['href']
+                    rubrics_city.append(refr_city.split('/')[2])
+                    print(f'№:{j} - {refr_city.split("/")[2]}')
+            sel_city = int(input('Выберите Город! №:\n'))
+            print(rubrics_city[sel_city])
+            return rubrics_city[sel_city]
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
