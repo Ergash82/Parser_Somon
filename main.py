@@ -53,4 +53,53 @@ def main():
             sel_city = int(input('Выберите Город! №:\n'))
             print(rubrics_city[sel_city])
             return rubrics_city[sel_city]
+
+        # 2 Получаем Рубрику
+        def get_rubrics():
+            global soup
+            global sel_rubric
+            rubrics.clear()
+            sel_city = get_city()
+            for rubric in soup.findAll(class_="rubrics-list"):
+                for i, link in enumerate(rubric.findAll('li')):
+                    refer = link.find('a')['href']
+                    rubrics.append([refer.split('/')[2], "https://somon.tj" + refer + sel_city])
+                    print(f'№:{i} - {refer.split("/")[2]}')
+
+            # Выбираем рубрику
+            sel_rubric = int(input('Выберите рубрику №: ! \n'))
+            print(rubrics[sel_rubric][0])
+            return rubrics[sel_rubric][1]
+
+        # 3 Получаем под-Рубрику
+        def get_sub_rubric():
+            global soup
+            global sel_rubric
+            rubrics.clear()
+            for rubric in soup.findAll(class_="rubrics-list"):
+                for link in rubric.findAll('li'):
+                    refr = link.find('a')['href']
+                    rubrics.append([refr.split('/')[3], "https://somon.tj" + refr])
+
+            for i, rub in enumerate(rubrics):
+                print(f'№:{i} - {rub[0]}')
+                # Выбираем рубрику
+            selet_rubrics = int(input('Выберите рубрику №: ! \n'))
+            sel_rubric = selet_rubrics
+            print(rubrics[sel_rubric][0], rubrics[sel_rubric][1])
+            html = req.get(rubrics[sel_rubric][1], headers)
+            soup = bs(html.text, 'lxml')
+
+        rubric_link = get_rubrics()
+        html = req.get(rubric_link, headers)
+        if bs(html.text, 'lxml').find(class_="rubrics-list").findAll('li'):
+            soup = bs(html.text, 'lxml')
+            get_sub_rubric()  # Парсим под рубрику если она имеется!
+        else:
+            print('Под_рубрики не найдены!')
+
+
+
+if __name__ == '__main__':
+    main()
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
